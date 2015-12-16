@@ -1,0 +1,11 @@
+﻿.dui-form fieldset:disabled input {
+    background-color: transparent !important;
+}
+
+.dui-form .panel-footer .btn {
+    width: 100px !important;
+}
+
+input::-ms-clear {
+    display: none !important;
+}

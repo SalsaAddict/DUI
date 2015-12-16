@@ -1,7 +1,7 @@
 ﻿/// <reference path="../typings/requirejs/require.d.ts" />
 "use strict";
 
-var defaultLocaleId: string = "en-us",
+var defaultLocaleId: string = "fr-fr",
     debug: boolean = true;
 
 require.config({

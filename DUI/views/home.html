@@ -1,4 +1,21 @@
-﻿<div class="container" ng-init="Person = {Forename: 'Pierre', DOB: '2015-08-13', Price: '12345678.565'}">
-    <dui-date ng-model="Person.DOB"></dui-date>
+﻿<div class="container form-horizontal" ng-init="Person = {Forename: 'Pierre', DOB: '2015-08-13T00:00:00.000Z', Price: '12345678.565', Quantity: '0'}">
+    <dui-form heading="Claimant Details" subheading="Pierre Henry" save="apiClaimantSave as Claimant">
+        <dui-form-tab heading="Personal" sort="2">
+            <dui-label text="Date of Birth">
+                <dui-date ng-model="Person.DOB" required></dui-date>
+            </dui-label>
+            <dui-label text="Address">
+                <textarea ng-model="Person.Address" dui-input></textarea>
+            </dui-label>
+        </dui-form-tab>
+        <dui-form-tab heading="Vehicle Details" sort="1">
+            <dui-label text="Vehicle Price">
+                <input ng-model="Person.Price" dui-input="decimal" />
+            </dui-label>
+            <dui-label text="Vehicle Quantity">
+                <input ng-model="Person.Quantity" dui-input="integer" />
+            </dui-label>
+        </dui-form-tab>
+    </dui-form>
 </div>
 <pre>{{Person}}</pre>
