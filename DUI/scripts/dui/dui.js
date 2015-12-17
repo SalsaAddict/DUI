@@ -1,6 +1,6 @@
 /// <reference path="../typings/requirejs/require.d.ts" />
 "use strict";
-var defaultLocaleId = "fr-fr", debug = true;
+var defaultLocaleId = "en-us", debug = true;
 require.config({
     baseUrl: "scripts",
     paths: {

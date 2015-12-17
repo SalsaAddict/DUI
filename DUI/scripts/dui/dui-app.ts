@@ -11,6 +11,6 @@ var app: angular.IModule = angular.module("Advent", ["ngRoute", "ui.bootstrap", 
 
 app.config(["$routeProvider", function ($routeProvider: angular.route.IRouteProvider) {
     $routeProvider
-        .when("/home/:IncidentId?/:ClaimantId?/:ClaimId?", { templateUrl: "views/home.html" })
+        .when("/home/:IncidentId?/:ClaimantId?/:ClaimId?", { name: "Home", templateUrl: "views/home.html" })
         .otherwise({ redirectTo: "/home" });
 }]);

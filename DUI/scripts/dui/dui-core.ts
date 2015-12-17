@@ -84,12 +84,15 @@ module DUI {
             undo: Function;
         }
         export interface ITab { heading: string; sort: number; active: boolean; }
+        export interface ISavedTabs { [routeName: string]: string; }
         export class Controller {
-            static $inject: string[] = ["$scope", "$route", "$log"];
+            static $inject: string[] = ["$scope", "$window", "$route", "$filter", "$log"];
             tabs: ITab[] = [];
             constructor(
                 private $scope: IScope,
+                private $window: angular.IWindowService,
                 private $route: angular.route.IRouteService,
+                private $filter: angular.IFilterService,
                 private $log: angular.ILogService) { }
             get hasTabs(): boolean { return this.tabs.length > 0; }
             addTab = (heading: string, sort: number) => {
@@ -107,6 +110,29 @@ module DUI {
             activateTab = (tab: ITab) => {
                 angular.forEach(this.tabs, function (tab: ITab) { tab.active = false; });
                 tab.active = true;
+                if (!IsBlank(this.$route.current.name)) {
+                    var savedTabs: ISavedTabs = angular.fromJson(IfBlank(this.$window.localStorage.getItem("savedTabs"), "{}"));
+                    savedTabs[this.$route.current.name] = tab.heading;
+                    this.$window.localStorage.setItem("savedTabs", angular.toJson(savedTabs));
+                }
+            }
+            activateFirstTab = () => {
+                var activated: boolean = false;
+                if (!IsBlank(this.$route.current.name)) {
+                    var savedTabs: ISavedTabs = angular.fromJson(IfBlank(this.$window.localStorage.getItem("savedTabs"), "{}"));
+                    if (!IsBlank(savedTabs)) {
+                        var tabHeading: string = savedTabs[this.$route.current.name];
+                        if (!IsBlank(tabHeading)) {
+                            angular.forEach(this.tabs, (item: ITab) => {
+                                if (item.heading === tabHeading) {
+                                    this.activateTab(item);
+                                    activated = true;
+                                }
+                            });
+                        }
+                    }
+                }
+                if (!activated) { this.activateTab(this.$filter("orderBy")(this.tabs, "sort")[0]); }
             }
             get isDirty(): boolean { return this.$scope.form.$dirty; }
         }
@@ -115,7 +141,8 @@ module DUI {
                 $window: angular.IWindowService,
                 $location: angular.ILocationService,
                 $route: angular.route.IRouteService,
-                $filter: angular.IFilterService) {
+                $filter: angular.IFilterService,
+                $log: angular.ILogService) {
                 return {
                     restrict: "E",
                     templateUrl: "duiForm.html",
@@ -146,11 +173,11 @@ module DUI {
                             }
                         };
                         $scope.undo = function () { $route.reload(); };
-                        if (duiFormCtrl.hasTabs) { duiFormCtrl.activateTab($filter("orderBy")(duiFormCtrl.tabs, "sort")[0]); }
+                        if (duiFormCtrl.hasTabs) { duiFormCtrl.activateFirstTab(); }
                     }
                 };
             };
-            factory.$inject = ["$window", "$location", "$route", "$filter"];
+            factory.$inject = ["$window", "$location", "$route", "$filter", "$log"];
             return factory;
         }
     }

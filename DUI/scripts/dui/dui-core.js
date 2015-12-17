@@ -120,10 +120,12 @@ var DUI;
     var Form;
     (function (Form) {
         var Controller = (function () {
-            function Controller($scope, $route, $log) {
+            function Controller($scope, $window, $route, $filter, $log) {
                 var _this = this;
                 this.$scope = $scope;
+                this.$window = $window;
                 this.$route = $route;
+                this.$filter = $filter;
                 this.$log = $log;
                 this.tabs = [];
                 this.addTab = function (heading, sort) {
@@ -143,6 +145,31 @@ var DUI;
                 this.activateTab = function (tab) {
                     angular.forEach(_this.tabs, function (tab) { tab.active = false; });
                     tab.active = true;
+                    if (!IsBlank(_this.$route.current.name)) {
+                        var savedTabs = angular.fromJson(IfBlank(_this.$window.localStorage.getItem("savedTabs"), "{}"));
+                        savedTabs[_this.$route.current.name] = tab.heading;
+                        _this.$window.localStorage.setItem("savedTabs", angular.toJson(savedTabs));
+                    }
+                };
+                this.activateFirstTab = function () {
+                    var activated = false;
+                    if (!IsBlank(_this.$route.current.name)) {
+                        var savedTabs = angular.fromJson(IfBlank(_this.$window.localStorage.getItem("savedTabs"), "{}"));
+                        if (!IsBlank(savedTabs)) {
+                            var tabHeading = savedTabs[_this.$route.current.name];
+                            if (!IsBlank(tabHeading)) {
+                                angular.forEach(_this.tabs, function (item) {
+                                    if (item.heading === tabHeading) {
+                                        _this.activateTab(item);
+                                        activated = true;
+                                    }
+                                });
+                            }
+                        }
+                    }
+                    if (!activated) {
+                        _this.activateTab(_this.$filter("orderBy")(_this.tabs, "sort")[0]);
+                    }
                 };
             }
             Object.defineProperty(Controller.prototype, "hasTabs", {
@@ -155,12 +182,12 @@ var DUI;
                 enumerable: true,
                 configurable: true
             });
-            Controller.$inject = ["$scope", "$route", "$log"];
+            Controller.$inject = ["$scope", "$window", "$route", "$filter", "$log"];
             return Controller;
         })();
         Form.Controller = Controller;
         function DirectiveFactory() {
-            var factory = function ($window, $location, $route, $filter) {
+            var factory = function ($window, $location, $route, $filter, $log) {
                 return {
                     restrict: "E",
                     templateUrl: "duiForm.html",
@@ -189,12 +216,12 @@ var DUI;
                         };
                         $scope.undo = function () { $route.reload(); };
                         if (duiFormCtrl.hasTabs) {
-                            duiFormCtrl.activateTab($filter("orderBy")(duiFormCtrl.tabs, "sort")[0]);
+                            duiFormCtrl.activateFirstTab();
                         }
                     }
                 };
             };
-            factory.$inject = ["$window", "$location", "$route", "$filter"];
+            factory.$inject = ["$window", "$location", "$route", "$filter", "$log"];
             return factory;
         }
         Form.DirectiveFactory = DirectiveFactory;
