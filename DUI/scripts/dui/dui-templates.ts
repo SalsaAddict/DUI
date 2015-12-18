@@ -59,6 +59,12 @@ dui.run(["$templateCache", "$log", function (
         "<div class=\"col-sm-9\" ng-transclude></div>" +
         "</div>");
 
+    $templateCache.put("duiCurrency.html",
+        "<div class=\"input-group\">" +
+        "<span class=\"input-group-addon\">{{symbol || defaultSymbol}}</span>" +
+        "<input type=\"text\" ng-model=\"ngModel\" dui-input=\"decimal\" ng-required=\"isRequired\" />" +
+        "</div>");
+
     $templateCache.put("duiDate.html",
         "<div class=\"input-group\">" +
         "<input type=\"text\" ng-model=\"uibModel\" ng-required=\"isRequired\" " +

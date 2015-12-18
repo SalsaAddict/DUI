@@ -72,7 +72,7 @@ var DUI;
                 this.$log = $log;
                 this.integerParser = function (value) {
                     if (IsBlank(value)) {
-                        return;
+                        return value;
                     }
                     var s = String(value)
                         .replace(/\s/g, "\u00a0")
@@ -89,7 +89,7 @@ var DUI;
                 };
                 this.decimalParser = function (value) {
                     if (IsBlank(value)) {
-                        return;
+                        return value;
                     }
                     var s = String(value).split(_this.$locale.NUMBER_FORMATS.DECIMAL_SEP);
                     if (s.length > 2) {
@@ -120,11 +120,12 @@ var DUI;
     var Form;
     (function (Form) {
         var Controller = (function () {
-            function Controller($scope, $window, $route, $filter, $log) {
+            function Controller($scope, $window, $route, $routeParams, $filter, $log) {
                 var _this = this;
                 this.$scope = $scope;
                 this.$window = $window;
                 this.$route = $route;
+                this.$routeParams = $routeParams;
                 this.$filter = $filter;
                 this.$log = $log;
                 this.tabs = [];
@@ -145,27 +146,16 @@ var DUI;
                 this.activateTab = function (tab) {
                     angular.forEach(_this.tabs, function (tab) { tab.active = false; });
                     tab.active = true;
-                    if (!IsBlank(_this.$route.current.name)) {
-                        var savedTabs = angular.fromJson(IfBlank(_this.$window.localStorage.getItem("savedTabs"), "{}"));
-                        savedTabs[_this.$route.current.name] = tab.heading;
-                        _this.$window.localStorage.setItem("savedTabs", angular.toJson(savedTabs));
-                    }
                 };
                 this.activateFirstTab = function () {
                     var activated = false;
-                    if (!IsBlank(_this.$route.current.name)) {
-                        var savedTabs = angular.fromJson(IfBlank(_this.$window.localStorage.getItem("savedTabs"), "{}"));
-                        if (!IsBlank(savedTabs)) {
-                            var tabHeading = savedTabs[_this.$route.current.name];
-                            if (!IsBlank(tabHeading)) {
-                                angular.forEach(_this.tabs, function (item) {
-                                    if (item.heading === tabHeading) {
-                                        _this.activateTab(item);
-                                        activated = true;
-                                    }
-                                });
+                    if (!IsBlank(_this.$routeParams.tabHeading)) {
+                        angular.forEach(_this.tabs, function (tab) {
+                            if (tab.heading === _this.$routeParams.tabHeading) {
+                                _this.activateTab(tab);
+                                activated = true;
                             }
-                        }
+                        });
                     }
                     if (!activated) {
                         _this.activateTab(_this.$filter("orderBy")(_this.tabs, "sort")[0]);
@@ -182,7 +172,7 @@ var DUI;
                 enumerable: true,
                 configurable: true
             });
-            Controller.$inject = ["$scope", "$window", "$route", "$filter", "$log"];
+            Controller.$inject = ["$scope", "$window", "$route", "$routeParams", "$filter", "$log"];
             return Controller;
         })();
         Form.Controller = Controller;
@@ -302,6 +292,31 @@ var DUI;
         }
         Input.DirectiveFactory = DirectiveFactory;
     })(Input = DUI.Input || (DUI.Input = {}));
+    var CurrencyField;
+    (function (CurrencyField) {
+        function DirectiveFactory() {
+            var factory = function ($locale) {
+                return {
+                    restrict: "E",
+                    scope: { symbol: "@", ngModel: "=" },
+                    templateUrl: "duiCurrency.html",
+                    link: function ($scope, iElement, iAttrs) {
+                        Object.defineProperties($scope, {
+                            "defaultSymbol": {
+                                get: function () { return $locale.NUMBER_FORMATS.CURRENCY_SYM; }
+                            },
+                            "required": {
+                                get: function () { return DUI.BooleanAttr(iAttrs, "required"); }
+                            }
+                        });
+                    }
+                };
+            };
+            factory.$inject = ["$locale"];
+            return factory;
+        }
+        CurrencyField.DirectiveFactory = DirectiveFactory;
+    })(CurrencyField = DUI.CurrencyField || (DUI.CurrencyField = {}));
     var DateField;
     (function (DateField) {
         function DirectiveFactory() {
@@ -360,8 +375,9 @@ dui.service("duiLocale", DUI.Locale.Service);
 dui.directive("duiForm", DUI.Form.DirectiveFactory());
 dui.directive("duiFormTab", DUI.FormTab.DirectiveFactory());
 dui.directive("duiLabel", DUI.Label.DirectiveFactory());
-dui.directive("duiDate", DUI.DateField.DirectiveFactory());
 dui.directive("duiInput", DUI.Input.DirectiveFactory());
+dui.directive("duiCurrency", DUI.CurrencyField.DirectiveFactory());
+dui.directive("duiDate", DUI.DateField.DirectiveFactory());
 dui.run(["$locale", "$log", function ($locale, $log) {
         moment.locale($locale.id);
     }]);

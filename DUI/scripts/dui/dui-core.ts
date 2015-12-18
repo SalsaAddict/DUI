@@ -45,7 +45,7 @@ module DUI {
                 private $filter: angular.IFilterService,
                 private $log: angular.ILogService) { }
             integerParser = (value: any): number => {
-                if (IsBlank(value)) { return; }
+                if (IsBlank(value)) { return value; }
                 var s: string = String(value)
                     .replace(/\s/g, "\u00a0")
                     .replace(new RegExp("\\" + this.$locale.NUMBER_FORMATS.GROUP_SEP, "g"), ",");
@@ -58,7 +58,7 @@ module DUI {
                 return (isNaN(n)) ? undefined : this.$filter("number")(n, 0);
             }
             decimalParser = (value: any): number => {
-                if (IsBlank(value)) { return; }
+                if (IsBlank(value)) { return value; }
                 var s: string[] = String(value).split(this.$locale.NUMBER_FORMATS.DECIMAL_SEP);
                 if (s.length > 2) { return; }
                 var i: number = this.integerParser(s[0]);
@@ -84,14 +84,16 @@ module DUI {
             undo: Function;
         }
         export interface ITab { heading: string; sort: number; active: boolean; }
-        export interface ISavedTabs { [routeName: string]: string; }
+        export interface IRouteParamsService extends angular.route.IRouteParamsService { tabHeading?: string; }
+        export interface ISavedTabs { [routeName: string]: { routeParams: angular.route.IRouteParamsService; tabHeading: string; }; }
         export class Controller {
-            static $inject: string[] = ["$scope", "$window", "$route", "$filter", "$log"];
+            static $inject: string[] = ["$scope", "$window", "$route", "$routeParams", "$filter", "$log"];
             tabs: ITab[] = [];
             constructor(
                 private $scope: IScope,
                 private $window: angular.IWindowService,
                 private $route: angular.route.IRouteService,
+                private $routeParams: IRouteParamsService,
                 private $filter: angular.IFilterService,
                 private $log: angular.ILogService) { }
             get hasTabs(): boolean { return this.tabs.length > 0; }
@@ -110,27 +112,16 @@ module DUI {
             activateTab = (tab: ITab) => {
                 angular.forEach(this.tabs, function (tab: ITab) { tab.active = false; });
                 tab.active = true;
-                if (!IsBlank(this.$route.current.name)) {
-                    var savedTabs: ISavedTabs = angular.fromJson(IfBlank(this.$window.localStorage.getItem("savedTabs"), "{}"));
-                    savedTabs[this.$route.current.name] = tab.heading;
-                    this.$window.localStorage.setItem("savedTabs", angular.toJson(savedTabs));
-                }
             }
             activateFirstTab = () => {
                 var activated: boolean = false;
-                if (!IsBlank(this.$route.current.name)) {
-                    var savedTabs: ISavedTabs = angular.fromJson(IfBlank(this.$window.localStorage.getItem("savedTabs"), "{}"));
-                    if (!IsBlank(savedTabs)) {
-                        var tabHeading: string = savedTabs[this.$route.current.name];
-                        if (!IsBlank(tabHeading)) {
-                            angular.forEach(this.tabs, (item: ITab) => {
-                                if (item.heading === tabHeading) {
-                                    this.activateTab(item);
-                                    activated = true;
-                                }
-                            });
+                if (!IsBlank(this.$routeParams.tabHeading)) {
+                    angular.forEach(this.tabs, (tab: ITab) => {
+                        if (tab.heading === this.$routeParams.tabHeading) {
+                            this.activateTab(tab);
+                            activated = true;
                         }
-                    }
+                    });
                 }
                 if (!activated) { this.activateTab(this.$filter("orderBy")(this.tabs, "sort")[0]); }
             }
@@ -268,9 +259,37 @@ module DUI {
             return factory;
         }
     }
+    export module CurrencyField {
+        export interface IScope extends angular.IScope { symbol: string; ngModel: any; required: boolean; }
+        export interface IAttributes extends angular.IAttributes { required: string; }
+        export function DirectiveFactory(): angular.IDirectiveFactory {
+            var factory: angular.IDirectiveFactory = function ($locale: angular.ILocaleService) {
+                return {
+                    restrict: "E",
+                    scope: <IScope> { symbol: "@", ngModel: "=" },
+                    templateUrl: "duiCurrency.html",
+                    link: function (
+                        $scope: IScope,
+                        iElement: angular.IAugmentedJQuery,
+                        iAttrs: IAttributes) {
+                        Object.defineProperties($scope, {
+                            "defaultSymbol": {
+                                get: function () { return $locale.NUMBER_FORMATS.CURRENCY_SYM; }
+                            },
+                            "required": {
+                                get: function () { return DUI.BooleanAttr(iAttrs, "required"); }
+                            }
+                        });
+                    }
+                };
+            };
+            factory.$inject = ["$locale"];
+            return factory;
+        }
+    }
     export module DateField {
         export interface IScope extends angular.IScope {
-            ngModel: string;
+            ngModel: any;
             uibModel: Date;
             format: string;
             placeholder: string;
@@ -330,8 +349,9 @@ dui.service("duiLocale", DUI.Locale.Service);
 dui.directive("duiForm", DUI.Form.DirectiveFactory());
 dui.directive("duiFormTab", DUI.FormTab.DirectiveFactory());
 dui.directive("duiLabel", DUI.Label.DirectiveFactory());
-dui.directive("duiDate", DUI.DateField.DirectiveFactory());
 dui.directive("duiInput", DUI.Input.DirectiveFactory());
+dui.directive("duiCurrency", DUI.CurrencyField.DirectiveFactory());
+dui.directive("duiDate", DUI.DateField.DirectiveFactory());
 
 dui.run(["$locale", "$log", function ($locale: angular.ILocaleService, $log: angular.ILogService) {
     moment.locale($locale.id);
