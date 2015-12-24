@@ -251,8 +251,21 @@ var DUI;
                     scope: { text: "@" },
                     require: "^^duiForm",
                     link: function ($scope, iElement, iAttrs, duiFormCtrl) {
-                        Object.defineProperty($scope, "hasError", {
-                            get: function () { return (duiFormCtrl.isDirty || $scope.form.$dirty) && $scope.form.$invalid; }
+                        Object.defineProperties($scope, {
+                            "hasError": {
+                                get: function () { return (duiFormCtrl.isDirty || $scope.form.$dirty) && $scope.form.$invalid; }
+                            },
+                            "message": {
+                                get: function () {
+                                    if (IsBlank($scope.form.$error)) {
+                                        return;
+                                    }
+                                    if ($scope.form.$error.required) {
+                                        return "This field is required";
+                                    }
+                                    return "The supplied value is not valid";
+                                }
+                            }
                         });
                     }
                 };
@@ -305,7 +318,7 @@ var DUI;
                             "defaultSymbol": {
                                 get: function () { return $locale.NUMBER_FORMATS.CURRENCY_SYM; }
                             },
-                            "required": {
+                            "isRequired": {
                                 get: function () { return DUI.BooleanAttr(iAttrs, "required"); }
                             }
                         });

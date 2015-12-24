@@ -73,6 +73,11 @@ module DUI {
             }
         }
     }
+    export module Parameter {
+        export interface IScope extends angular.IScope {
+            type: string; value: string; required: boolean;
+        }
+    }
     export module Form {
         export interface IScope extends angular.IScope {
             heading: string;
@@ -85,7 +90,6 @@ module DUI {
         }
         export interface ITab { heading: string; sort: number; active: boolean; }
         export interface IRouteParamsService extends angular.route.IRouteParamsService { tabHeading?: string; }
-        export interface ISavedTabs { [routeName: string]: { routeParams: angular.route.IRouteParamsService; tabHeading: string; }; }
         export class Controller {
             static $inject: string[] = ["$scope", "$window", "$route", "$routeParams", "$filter", "$log"];
             tabs: ITab[] = [];
@@ -218,8 +222,17 @@ module DUI {
                         iElement: angular.IAugmentedJQuery,
                         iAttrs: angular.IAttributes,
                         duiFormCtrl: Form.Controller) {
-                        Object.defineProperty($scope, "hasError", {
-                            get: function () { return (duiFormCtrl.isDirty || $scope.form.$dirty) && $scope.form.$invalid; }
+                        Object.defineProperties($scope, {
+                            "hasError": {
+                                get: function () { return (duiFormCtrl.isDirty || $scope.form.$dirty) && $scope.form.$invalid; }
+                            },
+                            "message": {
+                                get: function () {
+                                    if (IsBlank($scope.form.$error)) { return; }
+                                    if ($scope.form.$error.required) { return "This field is required"; }
+                                    return "The supplied value is not valid";
+                                }
+                            }
                         });
                     }
                 };
@@ -276,7 +289,7 @@ module DUI {
                             "defaultSymbol": {
                                 get: function () { return $locale.NUMBER_FORMATS.CURRENCY_SYM; }
                             },
-                            "required": {
+                            "isRequired": {
                                 get: function () { return DUI.BooleanAttr(iAttrs, "required"); }
                             }
                         });

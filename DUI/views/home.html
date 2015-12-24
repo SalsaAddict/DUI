@@ -2,7 +2,7 @@
     <dui-form heading="Claimant Details" subheading="Pierre Henry" save="apiClaimantSave as Claimant">
         <dui-form-tab heading="Personal" sort="2">
             <dui-label text="Date of Birth">
-                <dui-date ng-model="Person.DOB"></dui-date>
+                <dui-date ng-model="Person.DOB" required></dui-date>
             </dui-label>
             <dui-label text="Address">
                 <textarea ng-model="Person.Address" dui-input></textarea>
@@ -10,7 +10,7 @@
         </dui-form-tab>
         <dui-form-tab heading="Vehicle Details" sort="1">
             <dui-label text="Vehicle Price">
-                <dui-currency symbol="&pound;" ng-model="Person.Price" required></dui-currency>
+                <dui-currency symbol="&pound;" ng-model="Person.Price"></dui-currency>
             </dui-label>
             <dui-label text="Vehicle Quantity">
                 <input ng-model="Person.Quantity" dui-input="integer" />

@@ -44,7 +44,7 @@ dui.run(["$templateCache", "$log", function ($templateCache, $log) {
             "<br /><div ng-transclude></div></div>");
         $templateCache.put("duiLabel.html", "<div class=\"form-group\" ng-class=\"{'has-error': hasError}\" ng-form=\"form\">" +
             "<label class=\"control-label col-sm-3\">{{text}}" +
-            "<span ng-if=\"hasError\"> <i class=\"fa fa-exclamation-triangle\"></i></span>" +
+            "<span ng-if=\"hasError\"> <i class=\"fa fa-exclamation-triangle\" title=\"{{message}}\"></i></span>" +
             "</label>" +
             "<div class=\"col-sm-9\" ng-transclude></div>" +
             "</div>");
