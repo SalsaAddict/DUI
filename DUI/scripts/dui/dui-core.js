@@ -257,8 +257,11 @@ var DUI;
                             },
                             "message": {
                                 get: function () {
-                                    if (IsBlank($scope.form.$error)) {
-                                        return;
+                                    if (!$scope.hasError) {
+                                        return $scope.text;
+                                    }
+                                    if ($scope.form.$error.date) {
+                                        return "The specified date is not valid";
                                     }
                                     if ($scope.form.$error.required) {
                                         return "This field is required";
