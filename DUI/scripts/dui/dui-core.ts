@@ -52,11 +52,11 @@ module DUI {
                 if (!(/^((?:[-+]?[1-9]\d{0,2})(?:(?:(?:\d{3})*)|(?:(?:\,\d{3})*)))$/.test(s) || s === "0")) { return; }
                 var n: number = parseInt(s.replace(/\,/g, ""), 10);
                 return (isNaN(n)) ? undefined : n;
-            }
+            };
             integerFormatter = (value: any): string => {
                 var n: number = Number(String(value));
                 return (isNaN(n)) ? undefined : this.$filter("number")(n, 0);
-            }
+            };
             decimalParser = (value: any): number => {
                 if (IsBlank(value)) { return value; }
                 var s: string[] = String(value).split(this.$locale.NUMBER_FORMATS.DECIMAL_SEP);
@@ -66,11 +66,11 @@ module DUI {
                 if (s.length = 2) { if (!/^(\d{2})$/.test(s[1])) { return; } }
                 var n: number = parseFloat(String(i) + "." + IfBlank(s[1], "00"));
                 return (isNaN(n)) ? undefined : n;
-            }
+            };
             decimalFormatter = (value: any): string => {
                 var n: number = Number(String(value));
                 return (isNaN(n)) ? undefined : this.$filter("number")(n, 2);
-            }
+            };
         }
     }
     export module Parameter {
@@ -116,7 +116,7 @@ module DUI {
             activateTab = (tab: ITab) => {
                 angular.forEach(this.tabs, function (tab: ITab) { tab.active = false; });
                 tab.active = true;
-            }
+            };
             activateFirstTab = () => {
                 var activated: boolean = false;
                 if (!IsBlank(this.$routeParams.tabHeading)) {
@@ -128,7 +128,7 @@ module DUI {
                     });
                 }
                 if (!activated) { this.activateTab(this.$filter("orderBy")(this.tabs, "sort")[0]); }
-            }
+            };
             get isDirty(): boolean { return this.$scope.form.$dirty; }
         }
         export function DirectiveFactory(): angular.IDirectiveFactory {
